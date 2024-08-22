@@ -1,0 +1,27 @@
+langchain
+langchain-openai
+langchain-pinecone
+langchain-groq
+langchainhub
+python-dotenv
+Flask
+openai
+pinecone-client
+jupyter
+firecrawl-py
+pydantic
+tiktoken
+matplotlib
+seaborn
+gunicorn
+python-dateutil
+####### google calendar api########
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+######Celery & Redis#####
+celery
+redis
+flower
+######Instagram######
+instagrapi
