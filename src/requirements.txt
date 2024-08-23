@@ -25,3 +25,5 @@ redis
 flower
 ######Instagram######
 instagrapi
+######GitGurdian####
+pre-commit
