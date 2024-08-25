@@ -1,4 +1,3 @@
-import os
 import time
 from dotenv import load_dotenv
 load_dotenv()
@@ -108,4 +107,4 @@ def unread_message():
 
 if __name__ == '__main__':
     calendar_start_sync()
-    flask_app.run(port=os.getenv("PORT", default=5000), debug=True) #port variable is given by railway
+    # flask_app.run(port=os.getenv("PORT", default=5000), debug=True) #port variable is given by railway

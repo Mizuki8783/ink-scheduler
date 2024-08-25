@@ -1,0 +1,10 @@
+.DS_Store
+.git
+.gitignore
+.env
+.python-version
+dev
+src/__pycache__
+# src/credentials.json
+# src/sync_token.json
+# src/token.json

@@ -4,3 +4,4 @@ dev
 src/token.json
 src/credentials.json
 src/sync_token.json
+dockerfile
