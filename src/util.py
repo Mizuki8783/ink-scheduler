@@ -10,28 +10,42 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+from secret_manager import get_secret, update_secret
+
 from dotenv import load_dotenv
 load_dotenv()
 
-#####Calender API Authentication########
+# #####Calender API Authentication########
+
+# SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+# creds = None
+
+# if os.path.exists("token.json"):
+#   creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+
+# if not creds or not creds.valid:
+#   if creds and creds.expired and creds.refresh_token:
+#     creds.refresh(Request())
+#   else:
+#     flow = InstalledAppFlow.from_client_secrets_file(
+#         "credentials.json", SCOPES
+#     )
+#     creds = flow.run_local_server(port=8080)
+#   with open("token.json", "w") as token:
+#     token.write(creds.to_json())
+# #######################################
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
-creds = None
+token = get_secret("mizuki1187", "token")
+creds = Credentials.from_authorized_user_info(token, SCOPES)
 
-if os.path.exists("token.json"):
-  creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
-if not creds or not creds.valid:
-  if creds and creds.expired and creds.refresh_token:
+if not creds:
+    raise Exception("No token found")
+elif not creds.valid and creds.expired and creds.refresh_token:
     creds.refresh(Request())
-  else:
-    flow = InstalledAppFlow.from_client_secrets_file(
-        "credentials.json", SCOPES
-    )
-    creds = flow.run_local_server(port=8080)
-  with open("token.json", "w") as token:
-    token.write(creds.to_json())
-#######################################
+    new_token = json.loads(creds.to_json())
+    print("updating creds")
+    res = update_secret("mizuki1187", "token", new_token)
 
 calender_client = build("calendar", "v3", credentials=creds)
 
@@ -94,11 +108,10 @@ def calendar_start_sync():
         request_args["pageToken"] = events_result["nextPageToken"]
         events_result = calender_client.events().list(**request_args).execute()
 
-    with open("sync_token.json", "w") as token:
-        token.write(json.dumps({"nextSyncToken": events_result["nextSyncToken"]}))
-
+    update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
     print("Sync Success!!")
 
+get_secret("mizuki1187", "sync_token")
 def calendar_get(start_time, end_time, q=None):
     request_args = {
         "calendarId": "primary",
@@ -116,12 +129,11 @@ def calendar_get(start_time, end_time, q=None):
     return events
 
 def calendar_get_diff():
-    with open('sync_token.json', 'r+') as file:
-        sync_token = json.load(file)["nextSyncToken"]
-        events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
+    sync_token = get_secret("mizuki1187", "sync_token")["nextSyncToken"]
+    events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
+    
     if len(events_result["items"]) != 0:
-        with open('sync_token.json', 'r+') as file:
-            file.write(json.dumps({"nextSyncToken": events_result["nextSyncToken"]}))
+        update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
 
     return events_result
 

@@ -21,13 +21,16 @@ from celery import shared_task
 from prompts import agent_system_prompt, check_availability_prompt, extraction_prompt
 from app_config import create_flask
 from instagrapi import Client
+from secret_manager import get_secret
 
 from util import *
+
 
 flask_app = create_flask()
 celery_app = flask_app.extensions["celery"]
 instagram_bot = Client()
-instagram_bot.login("mizuki1187", "$Ii8783219")
+password = get_secret("mizuki1187", "user_ig_password")
+instagram_bot.login("mizuki1187",password)
 # set_debug(True)
 # set_verbose(True)
 
@@ -56,10 +59,10 @@ def retrieve_availability(date_of_interest):
         return "直近の予約はありません。好きなお時間を指定してください。"
 
     availabilty_retrieval_chain = check_availability_prompt | ChatOpenAI(model="gpt-4o", temperature=0)
-    extraction_chain = extraction_prompt | ChatOpenAI(model="gpt-4o", temperature=0)
+    # extraction_chain = extraction_prompt | ChatOpenAI(model="gpt-4o", temperature=0)
 
     availability_retrieved = availabilty_retrieval_chain.invoke({"query":date_of_interest,"df":df.to_string(), "now": min_dt})
-    extracted = extraction_chain.invoke({"input":availability_retrieved.content})
+    # extracted = extraction_chain.invoke({"input":availability_retrieved.content})
 
     return availability_retrieved.content
 
