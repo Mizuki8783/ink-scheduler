@@ -215,6 +215,8 @@ def modify_prompt(type_prompt, ig_page):
 
     return prompt
 
+
+
 def create_agent(ig_page):
 
     llm = ChatOpenAI(model="gpt-4o",temperature=0)
@@ -231,6 +233,9 @@ def create_agent(ig_page):
     agent = AgentExecutor(agent=agent_base, tools=tools, verbose=True)
 
     return agent
+
+
+
 def clean_history(chat_history):
     history = []
     print(chat_history)
@@ -242,6 +247,9 @@ def clean_history(chat_history):
             history.append(HumanMessage(content))
 
     return history
+
+
+
 @shared_task
 def get_response(query, chat_history, ig_page):
     agent_executor = create_agent(ig_page)
