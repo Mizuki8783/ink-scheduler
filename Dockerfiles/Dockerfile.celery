@@ -10,7 +10,8 @@ COPY . .
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variablesARG FLASK_APP
+# Set environment variables
+ARG FLASK_APP
 ARG FLASK_ENV
 ARG FLASK_DEBUG
 ARG GITGUARDIAN_API_KEY

@@ -11,6 +11,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
+ARG FLASK_APP
 ARG FLASK_ENV
 ARG FLASK_DEBUG
 ARG GITGUARDIAN_API_KEY
@@ -27,6 +28,7 @@ ARG LANGCHAIN_TRACING_V2
 ARG LANGCHAIN_ENDPOINT
 ARG LANGCHAIN_API_KEY
 ARG LANGCHAIN_PROJECT
+
 # Expose the port the app runs on
 EXPOSE 5000
 
