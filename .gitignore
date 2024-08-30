@@ -1,7 +1,4 @@
 .env
 .DS_Store
+.cache_ggshield
 dev
-src/token.json
-src/credentials.json
-src/sync_token.json
-dockerfile

@@ -1,5 +1,9 @@
+import os
 from celery import Celery, Task
 from flask import Flask
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_celery(app):
     class FlaskTask(Task):
@@ -18,8 +22,8 @@ def create_flask() -> Flask:
     app = Flask(__name__)
     app.config.from_mapping(
         CELERY=dict(
-            broker_url="redis://localhost:6379/0",
-            result_backend="redis://localhost:6379/0"
+            broker_url=os.getenv("REDIS_URL"),
+            result_backend=os.getenv("REDIS_URL")
         )
     )
     create_celery(app)

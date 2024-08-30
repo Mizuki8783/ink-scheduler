@@ -27,3 +27,7 @@ flower
 instagrapi
 ######GitGurdian####
 pre-commit
+#####MongoDB######
+pymongo
+#####Encryption####
+cryptography
