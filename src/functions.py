@@ -96,6 +96,7 @@ def retrieve_existing_appointment(ig_page: str) -> str:
 
     return f"{record["fields"]["name"]}さんの既存の予約はこちら: {times}"
 
+
 @tool
 def create_new_appointment(ig_page: str, name: str, start_time: str, design: str, size: str, placement: str) -> str:
     """
