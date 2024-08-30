@@ -1,0 +1,35 @@
+# Use an official Python runtime as a parent image
+FROM python:3.12.0-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set environment variablesARG FLASK_APP
+ARG FLASK_ENV
+ARG FLASK_DEBUG
+ARG GITGUARDIAN_API_KEY
+ARG FERNET_KEY
+
+ARG OPENAI_API_KEY
+ARG GROQ_API_KEY
+ARG AIRTABLE_API_KEY
+
+ARG MONGODB_URL
+ARG REDIS_URL
+
+ARG LANGCHAIN_TRACING_V2
+ARG LANGCHAIN_ENDPOINT
+ARG LANGCHAIN_API_KEY
+ARG LANGCHAIN_PROJECT
+
+# Expose the port the app runs on
+EXPOSE 5000
+
+# Command to run the Flask app
+CMD cd src && celery -A functions worker --loglevel=INFO

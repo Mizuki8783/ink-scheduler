@@ -11,12 +11,24 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
-ENV FLASK_APP=main.py
-ENV FLASK_ENV=development
-ENV FLASK_DEBUG=1
+ARG FLASK_ENV
+ARG FLASK_DEBUG
+ARG GITGUARDIAN_API_KEY
+ARG FERNET_KEY
 
+ARG OPENAI_API_KEY
+ARG GROQ_API_KEY
+ARG AIRTABLE_API_KEY
+
+ARG MONGODB_URL
+ARG REDIS_URL
+
+ARG LANGCHAIN_TRACING_V2
+ARG LANGCHAIN_ENDPOINT
+ARG LANGCHAIN_API_KEY
+ARG LANGCHAIN_PROJECT
 # Expose the port the app runs on
 EXPOSE 5000
 
 # Command to run the Flask app
-CMD cd src && flask run --host=0.0.0.0 --port=5000 && celery -A functions worker --loglevel=INFO && celery -A functions flower && echo DONE
+CMD cd src && flask run --host=0.0.0.0 --port=5000
