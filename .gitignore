@@ -1,4 +1,5 @@
 .env
 .DS_Store
 .cache_ggshield
+.python-version
 dev
