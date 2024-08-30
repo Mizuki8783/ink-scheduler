@@ -4,11 +4,12 @@ FROM python:3.12.0-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Install any needed packages specified in requirements.txt first to leverage the caching layer
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 # Copy the current directory contents into the container at /app
 COPY . .
-
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
 ARG FLASK_APP
@@ -31,6 +32,12 @@ ARG LANGCHAIN_PROJECT
 
 # Expose the port the app runs on
 EXPOSE 5000
+
+# Create a non-root user
+RUN useradd -m celeryuser
+
+# Switch to the non-root user
+USER celeryuser
 
 # Command to run the Flask app
 CMD cd src && celery -A functions worker --loglevel=INFO
