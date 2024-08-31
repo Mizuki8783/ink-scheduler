@@ -36,7 +36,7 @@ load_dotenv()
 # #######################################
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
-token = get_secret("mizuki1187", "token")
+token = get_secret("tsm.automation", "token")
 creds = Credentials.from_authorized_user_info(token, SCOPES)
 
 if not creds:
@@ -45,7 +45,7 @@ elif not creds.valid and creds.expired and creds.refresh_token:
     creds.refresh(Request())
     new_token = json.loads(creds.to_json())
     print("updating creds")
-    res = update_secret("mizuki1187", "token", new_token)
+    res = update_secret("tsm.automation", "token", new_token)
 
 calender_client = build("calendar", "v3", credentials=creds)
 
@@ -108,7 +108,7 @@ def calendar_start_sync():
         request_args["pageToken"] = events_result["nextPageToken"]
         events_result = calender_client.events().list(**request_args).execute()
 
-    update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
+    update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
     print("Sync Success!!")
 
 def calendar_get(start_time, end_time, q=None):
@@ -128,11 +128,11 @@ def calendar_get(start_time, end_time, q=None):
     return events
 
 def calendar_get_diff():
-    sync_token = get_secret("mizuki1187", "sync_token")["nextSyncToken"]
+    sync_token = get_secret("tsm.automation", "sync_token")["nextSyncToken"]
     events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
 
     if len(events_result["items"]) != 0:
-        update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
+        update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
 
     return events_result
 

@@ -29,8 +29,8 @@ from util import *
 flask_app = create_flask()
 celery_app = flask_app.extensions["celery"]
 instagram_bot = Client()
-password = get_secret("mizuki1187", "user_ig_password")
-instagram_bot.login("mizuki1187",password)
+# password = get_secret("tsm.automation", "user_ig_password")
+# instagram_bot.login("tsm.automation",password)
 # set_debug(True)
 # set_verbose(True)
 
