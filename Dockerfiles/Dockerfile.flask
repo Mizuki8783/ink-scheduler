@@ -39,5 +39,5 @@ RUN useradd -m flaskuser
 # Switch to the non-root user
 USER flaskuser
 
-# Command to run the Flask app
-CMD cd src && gunicorn --bind 0.0.0.0:5000 main:flask_app
+# Command to run the Flask app. Run main.py file to start the sync
+CMD cd src && python main.py && gunicorn --bind 0.0.0.0:5000 main:flask_app

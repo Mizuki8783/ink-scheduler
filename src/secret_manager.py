@@ -57,8 +57,8 @@ def update_secret(ig_name,secret_name,secret):
 
     result = collection.update_one(_filter, update_values)
     if result.modified_count == 1:
-        print("Update successful")
+        print("Secret update successful")
     else:
         print("Update failed")
 
-    return "Update successful"
+    return "Secret update successful"

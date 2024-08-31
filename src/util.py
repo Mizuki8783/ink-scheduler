@@ -111,7 +111,6 @@ def calendar_start_sync():
     update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
     print("Sync Success!!")
 
-get_secret("mizuki1187", "sync_token")
 def calendar_get(start_time, end_time, q=None):
     request_args = {
         "calendarId": "primary",
@@ -131,7 +130,7 @@ def calendar_get(start_time, end_time, q=None):
 def calendar_get_diff():
     sync_token = get_secret("mizuki1187", "sync_token")["nextSyncToken"]
     events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
-    
+
     if len(events_result["items"]) != 0:
         update_secret("mizuki1187", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
 
