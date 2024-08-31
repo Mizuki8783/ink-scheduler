@@ -33,5 +33,11 @@ ARG LANGCHAIN_PROJECT
 # Expose the port the app runs on
 EXPOSE 5000
 
+# Create a non-root user
+RUN useradd -m flaskuser
+
+# Switch to the non-root user
+USER flaskuser
+
 # Command to run the Flask app
-CMD cd src && flask run --host=0.0.0.0 --port=5000
+CMD cd src && gunicorn --bind 0.0.0.0:5000 main:flask_app
