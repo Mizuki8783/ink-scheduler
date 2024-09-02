@@ -40,4 +40,4 @@ RUN useradd -m celeryuser
 USER celeryuser
 
 # Command to run the Flask app
-CMD cd src && celery -A functions worker --loglevel=INFO
+CMD cd src && celery -A functions worker --concurrency=2 --loglevel=INFO
