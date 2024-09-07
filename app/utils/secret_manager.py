@@ -62,3 +62,5 @@ def update_secret(ig_name,secret_name,secret):
         print("Update failed")
 
     return "Secret update successful"
+
+print(f"-----------------{__name__}-----------------")

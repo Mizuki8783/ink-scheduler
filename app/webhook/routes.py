@@ -1,45 +1,10 @@
+from app.webhook import bp
+from flask import request
 import time
-from dotenv import load_dotenv
-load_dotenv()
+from app.utils.util import *
 
-from flask import request, jsonify
-from functions import flask_app, get_response, instagram_bot
-from util import *
-
-
-@flask_app.route('/handle_appointment', methods=['POST'])
-def new_appointment():
-    data = request.json  # request stores the data posted through API (i.e. thread_id and message)
-    history = data.get('history', "")  #figure out the way to send a list of messages over API
-    user_query = data.get('message', "")
-    ig_page = data.get('ig_page', "")
-
-    task = get_response.apply_async(args=[user_query, history, ig_page])
-
-    return jsonify({"task_id": task.id})
-
-@flask_app.route('/status/<task_id>', methods=['GET'])
-def check_status(task_id):
-    # Import the add task from tasks.py
-    start = time.time()
-    response = {'result': 'Pending'}
-
-    while (time.time() - start < 8) and response['result'] == 'Pending':
-
-        task = get_response.AsyncResult(task_id)
-        if task.state == 'PENDING':
-            response = {'result': 'Pending'}
-        elif task.state == 'SUCCESS':
-            response = {'result': task.result}
-        else: # Handle failure case
-            response = {
-                'result': "すみません、システム内部でエラーが発生しました。直接アカウントにお問い合わせください。",
-                'exception': str(task.info)# Exception information
-            }
-    return jsonify(response)
-
-@flask_app.route('/webhook', methods=['POST']) # default route
-def webhook():
+@bp.route('/calendar_update', methods=['POST']) # default route
+def calendar_update():
     headers = request.headers
 
     if headers["X-Goog-Resource-State"] == "exists":
@@ -94,17 +59,4 @@ def webhook():
 
     return "webhook done"
 
-@flask_app.route('/mark_unread', methods=['POST'])
-def unread_message():
-    data = request.json  # request stores the data posted through API (i.e. thread_id and message)
-    username = data.get('ig_page', "")  #figure out the way to send a list of messages over API
-
-    user_id =instagram_bot.user_id_from_username(username)
-    thread = instagram_bot.direct_thread_by_participants([user_id])
-    r = instagram_bot.direct_thread_mark_unread(int(thread["thread"]["thread_id"]))
-
-    return "Done"
-
-if __name__ == '__main__':
-    calendar_start_sync()
-    # flask_app.run(port=os.getenv("PORT", default=5000), debug=True) #port variable is given by railway
+print(f"-----------------{__name__}-----------------")

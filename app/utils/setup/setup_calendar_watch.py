@@ -34,3 +34,6 @@ client = MongoClient(os.getenv("MONGODB_URL"))
 db = client['secrets']
 collection = db['google_calender']
 collection.insert_one(document)
+
+
+print(f"-----------------{__name__}-----------------")

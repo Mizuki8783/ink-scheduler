@@ -78,3 +78,6 @@ collection = db['users']
 collection.insert_one(document)
 
 print("Setup completed")
+
+
+print(f"-----------------{__name__}-----------------")
