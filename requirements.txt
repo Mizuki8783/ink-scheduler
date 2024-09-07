@@ -4,7 +4,6 @@ langchain-pinecone
 langchain-groq
 langchainhub
 python-dotenv
-Flask
 openai
 pinecone-client
 jupyter
@@ -13,8 +12,18 @@ pydantic
 tiktoken
 matplotlib
 seaborn
-gunicorn
 python-dateutil
+######Flask#########
+gunicorn
+Flask
+flask-wtf
+flask-sqlalchemy
+flask-migrate
+flask-login
+email-validator
+aiosmtpd
+flask-mail
+pyjwt
 ####### google calendar api########
 google-api-python-client
 google-auth-httplib2

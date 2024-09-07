@@ -47,7 +47,7 @@ elif not creds.valid and creds.expired and creds.refresh_token:
     print("updating creds")
     res = update_secret("tsm.automation", "token", new_token)
 
-calender_client = build("calendar", "v3", credentials=creds)
+calendar_client = build("calendar", "v3", credentials=creds)
 
 AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
 base_id = "appEfKbQbUD5ECI7L"
@@ -102,11 +102,11 @@ def calendar_start_sync():
         "calendarId": "primary",
         "showDeleted": True,
     }
-    events_result = calender_client.events().list(**request_args).execute()
+    events_result = calendar_client.events().list(**request_args).execute()
 
     while events_result.get("nextPageToken"):
         request_args["pageToken"] = events_result["nextPageToken"]
-        events_result = calender_client.events().list(**request_args).execute()
+        events_result = calendar_client.events().list(**request_args).execute()
 
     update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
     print("Sync Success!!")
@@ -122,14 +122,14 @@ def calendar_get(start_time, end_time, q=None):
     if q is not None:
         request_args["q"] = q
 
-    events_result = calender_client.events().list(**request_args).execute()
+    events_result = calendar_client.events().list(**request_args).execute()
     events = events_result.get("items", [])
 
     return events
 
 def calendar_get_diff():
     sync_token = get_secret("tsm.automation", "sync_token")["nextSyncToken"]
-    events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
+    events_result = calendar_client.events().list(calendarId="primary",syncToken=sync_token).execute()
 
     if len(events_result["items"]) != 0:
         update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
@@ -142,7 +142,7 @@ def calendar_delete(event_id):
         "eventId": event_id
     }
 
-    events_result = calender_client.events().delete(**request_args).execute()
+    events_result = calendar_client.events().delete(**request_args).execute()
 
     return events_result
 
