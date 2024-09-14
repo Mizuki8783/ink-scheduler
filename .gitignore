@@ -4,3 +4,7 @@
 .python-version
 dev
 test_api.ipynb
+get_github_context.sh
+ink-scheduler_dev_context.md
+output.txt
+get_local_context.sh
