@@ -9,8 +9,9 @@ def new_appointment():
     history = data.get('history', "")  #figure out the way to send a list of messages over API
     user_query = data.get('message', "")
     ig_page = data.get('ig_page', "")
+    user_id = data.get('user_id', "")
 
-    task = get_response.apply_async(args=[user_query, history, ig_page])
+    task = get_response.apply_async(args=[user_query, history, ig_page, user_id])
 
     return jsonify({"task_id": task.id})
 
