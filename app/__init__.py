@@ -24,9 +24,6 @@ def create_flask():
     from app.webhook import bp as webhook_bp
     app.register_blueprint(webhook_bp, url_prefix='/webhook')
 
-    # from app.auth import bp as auth_bp
-    # app.register_blueprint(auth_bp)
-
     create_celery(app)
 
     return app
