@@ -41,17 +41,17 @@ gc_client_creds = flow.run_local_server(port=8080, timeout=30)
 token = json.loads(gc_client_creds.to_json())
 
 #####Issuing Google Calendar Sync Token########
-calender_client = build("calendar", "v3", credentials=gc_client_creds)
+calendar_client = build("calendar", "v3", credentials=gc_client_creds)
 
 request_args = {
     "calendarId": "primary",
     "showDeleted": True,
 }
-events_result = calender_client.events().list(**request_args).execute()
+events_result = calendar_client.events().list(**request_args).execute()
 
 while events_result.get("nextPageToken"):
     request_args["pageToken"] = events_result["nextPageToken"]
-    events_result = calender_client.events().list(**request_args).execute()
+    events_result = calendar_client.events().list(**request_args).execute()
 
 sync_token = {"nextSyncToken": events_result["nextSyncToken"]}
 
@@ -78,3 +78,6 @@ collection = db['users']
 collection.insert_one(document)
 
 print("Setup completed")
+
+
+print(f"-----------------{__name__}-----------------")

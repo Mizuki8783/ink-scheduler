@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from util import calender_client
+from util import calendar_client
 from pymongo import MongoClient
 
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ request_body = {
         'ttl': 2592000 #30 days
         }
 }
-response = calender_client.events().watch(calendarId="primary", body=request_body).execute()
+response = calendar_client.events().watch(calendarId="primary", body=request_body).execute()
 
 expiration_time = int(response['expiration']) / 1000  # Convert to seconds
 response["expiration"] = datetime.fromtimestamp(expiration_time).strftime('%Y-%m-%d %H:%M:%S')
@@ -34,3 +34,6 @@ client = MongoClient(os.getenv("MONGODB_URL"))
 db = client['secrets']
 collection = db['google_calender']
 collection.insert_one(document)
+
+
+print(f"-----------------{__name__}-----------------")

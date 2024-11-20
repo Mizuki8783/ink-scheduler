@@ -1,53 +1,54 @@
-from dotenv import load_dotenv
-load_dotenv()
-
-
 from datetime import datetime
-import pytz
 from dateutil.relativedelta import relativedelta
-import pandas as pd
-
 from langchain.tools import tool
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_tool_calling_agent
-from langchain.agents import AgentExecutor
-from langchain import hub
-from langchain.prompts import SystemMessagePromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain.globals import set_debug, set_verbose
-
-from celery import shared_task
-
-from prompts import agent_system_prompt, check_availability_prompt, extraction_prompt
-from app_config import create_flask
-from instagrapi import Client
-from secret_manager import get_secret
-
-from util import *
+import pandas as pd
+import pytz
+from ..util import *
+from .prompts import check_availability_prompt
+from pydantic import BaseModel, Field
+from typing import Optional
 
 
-flask_app = create_flask()
-celery_app = flask_app.extensions["celery"]
-instagram_bot = Client()
-# password = get_secret("tsm.automation", "user_ig_password")
-# instagram_bot.login("tsm.automation",password)
-# set_debug(True)
-# set_verbose(True)
+###########Argument Schemas###########
+class RetrieveAvailabilityInput(BaseModel):
+    date_of_interest: str = Field(description="The dates that the client would like to know the availibility for. It could be a date, date range, or common expression or phrase that imply dates, such as 'the end of the week', 'tomorrow', 'next month', etc.")
 
-@tool
-def retrieve_availability(date_of_interest):
+class RetrieveExistingAppointmentInput(BaseModel):
+    ig_page: str = Field(description="The Instagram page of the client")
+
+class CreateNewAppointmentInput(BaseModel):
+    ig_page: str = Field(description="The Instagram page of the client")
+    name: str = Field(description="The name of the client")
+    start_time: str = Field(description="The start time of the appointment in isoformat in Asia/Tokyo timezone")
+    design: str = Field(description="The design of the tattoo")
+    size: str = Field(description="The size of the tattoo")
+    placement: str = Field(description="The placement of the tattoo")
+
+class ModifyExistingAppointmentInput(BaseModel):
+    ig_page: str = Field(description="The Instagram page of the client")
+    orig_start_time: str = Field(description="The original start time of the appointment in isoformat in Asia/Tokyo timezone")
+    new_start_time: Optional[str] = Field(description="The new start time for the appointment in isoformat in Asia/Tokyo timezone")
+    new_design: Optional[str] = Field(description="The new design of the tattoo")
+    new_size: Optional[str] = Field(description="The new size of the tattoo")
+    new_placement: Optional[str] = Field(description="The new placement of the tattoo")
+
+class CancelAppointmentInput(BaseModel):
+    ig_page: str = Field(description="The Instagram page of the client")
+    start_time: str = Field(description="The start time of the appointment in isoformat in Asia/Tokyo timezone")
+
+
+###########Tools###########
+def retrieve_availability(user_id, date_of_interest):
     """
     Retrieve the availability of the tattoo artist based on the provided query.
-
-    Args:
-        date_of_interest: The dates that the client would like to know the availibility for. It could be a date, date range, or common expression or phrase that imply dates, such as "the end of the week", "tomorrow", "next month", etc.
 
     Returns:
         The text response of the availability.
     """
     min_dt = datetime.now(pytz.timezone("Asia/Tokyo")).isoformat(timespec="seconds")
     max_dt = (datetime.now(pytz.timezone("Asia/Tokyo")) + relativedelta(days=60)).isoformat(timespec="seconds")
-    events = calendar_get(min_dt, max_dt)
+    events = calendar_get(min_dt, max_dt, user_id)
 
     try:
         df = pd.DataFrame(events)[["start","end"]]
@@ -59,21 +60,15 @@ def retrieve_availability(date_of_interest):
         return "直近の予約はありません。好きなお時間を指定してください。"
 
     availabilty_retrieval_chain = check_availability_prompt | ChatOpenAI(model="gpt-4o", temperature=0)
-    # extraction_chain = extraction_prompt | ChatOpenAI(model="gpt-4o", temperature=0)
 
     availability_retrieved = availabilty_retrieval_chain.invoke({"query":date_of_interest,"df":df.to_string(), "now": min_dt})
-    # extracted = extraction_chain.invoke({"input":availability_retrieved.content})
 
     return availability_retrieved.content
 
 
-@tool
 def retrieve_existing_appointment(ig_page: str) -> str:
     """
     A function to retrieve an existing appointment of the client.
-
-    Args:
-        ig_page (str): The Instagram page of the client
 
     Returns:
         str: A message indicating the existing appointment for the client
@@ -97,18 +92,9 @@ def retrieve_existing_appointment(ig_page: str) -> str:
     return f"{record["fields"]["name"]}さんの既存の予約はこちら: {times}"
 
 
-@tool
-def create_new_appointment(ig_page: str, name: str, start_time: str, design: str, size: str, placement: str) -> str:
+def create_new_appointment(user_id: str, ig_page: str, name: str, start_time: str, design: str, size: str, placement: str) -> str:
     """
     A function to create a new tattoo appointment with the provided details.
-
-    Args:
-        ig_page (str): The Instagram page of the client.
-        name (str): The name of the client.
-        start_time (str): The start time of the appointment in isoformat in Asia/Tokyo timezone.
-        design (str): The design of the tattoo.
-        size (str): The size of the tattoo.
-        placement (str): The placement of the tattoo.
 
     Returns:
         str: A message indicating the status of the appointment creation.
@@ -117,7 +103,7 @@ def create_new_appointment(ig_page: str, name: str, start_time: str, design: str
     end_time = (datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%S%z') + relativedelta(minutes=20)).isoformat(timespec="seconds")
     appointment_type = "カウンセリング"
 
-    events = calendar_get(start_time, end_time)
+    events = calendar_get(start_time, end_time, user_id)
     if len(events) != 0:
         return "新しい予約が今入ってしまいました。別の時間を選んでください"
 
@@ -135,18 +121,9 @@ def create_new_appointment(ig_page: str, name: str, start_time: str, design: str
     else:
         return "予約作成中にエラーが発生しました。予約は完了していません。アーティストに直接連絡してください"
 
-@tool
-def modify_existing_appointment(ig_page: str, orig_start_time: str, new_start_time=None, new_design=None, new_size=None, new_placement=None) -> str:
+def modify_existing_appointment(user_id: str, ig_page: str, orig_start_time: str, new_start_time=None, new_design=None, new_size=None, new_placement=None) -> str:
     """
     A function to modify an existing appointment with the option to update the start time, design, size, and placement.
-    Parameters:
-    - ig_page(str): The Instagram page associated with the appointment.
-    - orig_start_time(str): The original start time of the appointment in isoformat in Asia/Tokyo timezone.
-    - new_start_time(str): The new start time for the appointment in isoformat in Asia/Tokyo timezone.
-    - new_design(str): The new design of the tattoo.
-    - new_size(str): The new size of the tattoo.
-    - new_placement(str): The new placement of the tattoo.
-   Note: new_start_time, new_design, new_size, new_placement are optional parameters that are passed to the function when there's a change in the appointment details. Default to None
 
     Returns:
     - str: A message indicating the status of the appointment modification process.
@@ -155,7 +132,7 @@ def modify_existing_appointment(ig_page: str, orig_start_time: str, new_start_ti
 
     if new_start_time:
         new_end_time = (datetime.strptime(new_start_time, '%Y-%m-%dT%H:%M:%S%z') + relativedelta(minutes=20)).isoformat(timespec="seconds")
-        events = calendar_get(new_start_time, new_end_time)
+        events = calendar_get(new_start_time, new_end_time, user_id)
         if len(events) != 0:
             return "その時間に予約が入っています。別の時間を選んでください"
 
@@ -176,13 +153,9 @@ def modify_existing_appointment(ig_page: str, orig_start_time: str, new_start_ti
     else:
         return "変更中にエラーが発生しました。予約は完了していません。アーティストに直接連絡してください"
 
-@tool
-def cancel_appointment(ig_page: str, start_time: str) -> str:
+def cancel_appointment(user_id: str, ig_page: str, start_time: str) -> str:
     """
     A function to cancel an appointment based on the Instagram page and start time provided.
-    Parameters:
-    - ig_page (str): The Instagram page associated with the appointment.
-    - start_time (str): The start time of the appointment in isoformat in Asia/Tokyo timezone.
 
     Returns:
     - str: A message indicating the status of the appointment cancellation.
@@ -193,7 +166,7 @@ def cancel_appointment(ig_page: str, start_time: str) -> str:
 
     airtable_res = airtable_delete(records[0]["id"])
     try:
-        calendar_delete(records[0]["fields"]["event_id"])
+        calendar_delete(records[0]["fields"]["event_id"], user_id)
     except:
         return "キャンセル中にエラーが発生しました。予約は完了していません。アーティストに直接連絡してください"
 
@@ -203,61 +176,4 @@ def cancel_appointment(ig_page: str, start_time: str) -> str:
         return "キャンセル中にエラーが発生しました。予約は完了していません。アーティストに直接連絡してください"
 
 
-
-def modify_prompt(type_prompt, ig_page):
-    prompt = hub.pull("hwchase17/openai-functions-agent")
-    system_message_template = SystemMessagePromptTemplate.from_template(
-        type_prompt.format(
-            ig_page=ig_page,
-            now=datetime.now(pytz.timezone("Asia/Tokyo")).isoformat(timespec="seconds")
-            )
-        )
-    prompt.messages[0] = system_message_template
-
-    return prompt
-
-
-
-def create_agent(ig_page):
-
-    llm = ChatOpenAI(model="gpt-4o",temperature=0)
-    tools = [
-        retrieve_availability,
-        create_new_appointment,
-        retrieve_existing_appointment,
-        modify_existing_appointment,
-        cancel_appointment
-        ]
-    prompt = modify_prompt(agent_system_prompt, ig_page)
-
-    agent_base = create_tool_calling_agent(llm, tools, prompt)
-    agent = AgentExecutor(agent=agent_base, tools=tools, verbose=True)
-
-    return agent
-
-
-
-def clean_history(chat_history):
-    history = []
-    print(chat_history)
-    for message in chat_history.split("_end_of_message_"):
-        speaker, content = message.split(": ", 1)
-        if speaker == "AI_MESSAGE":
-            history.append(AIMessage(content))
-        else:
-            history.append(HumanMessage(content))
-
-    return history
-
-
-
-@shared_task
-def get_response(query, chat_history, ig_page):
-    agent_executor = create_agent(ig_page)
-    clean_chat_history = clean_history(chat_history)
-    response = agent_executor.invoke({
-        "chat_history": clean_chat_history,
-        "input": query,
-    })
-
-    return response["output"]
+print(f"-----------------{__name__}-----------------")

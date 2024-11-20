@@ -7,47 +7,13 @@ import re
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from secret_manager import get_secret, update_secret
+from app.utils.secret_manager import get_secret, update_secret
 
 from dotenv import load_dotenv
 load_dotenv()
 
-# #####Calender API Authentication########
-
-# SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
-# creds = None
-
-# if os.path.exists("token.json"):
-#   creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
-# if not creds or not creds.valid:
-#   if creds and creds.expired and creds.refresh_token:
-#     creds.refresh(Request())
-#   else:
-#     flow = InstalledAppFlow.from_client_secrets_file(
-#         "credentials.json", SCOPES
-#     )
-#     creds = flow.run_local_server(port=8080)
-#   with open("token.json", "w") as token:
-#     token.write(creds.to_json())
-# #######################################
-
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
-token = get_secret("tsm.automation", "token")
-creds = Credentials.from_authorized_user_info(token, SCOPES)
-
-if not creds:
-    raise Exception("No token found")
-elif not creds.valid and creds.expired and creds.refresh_token:
-    creds.refresh(Request())
-    new_token = json.loads(creds.to_json())
-    print("updating creds")
-    res = update_secret("tsm.automation", "token", new_token)
-
-calender_client = build("calendar", "v3", credentials=creds)
 
 AIRTABLE_API_KEY = os.environ.get("AIRTABLE_API_KEY")
 base_id = "appEfKbQbUD5ECI7L"
@@ -56,6 +22,21 @@ headers = {
     "Authorization": f"Bearer {AIRTABLE_API_KEY}",
     "Content-Type": "application/json"
 }
+
+def build_google_calendar_client(user_id):
+    SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+    user_creds = get_secret(user_id, "token")
+    creds = Credentials.from_authorized_user_info(user_creds, SCOPES)
+
+    if not creds:
+        raise Exception("No token found")
+    elif not creds.valid and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        new_token = json.loads(creds.to_json())
+        print("updating creds")
+        res = update_secret(user_id, "token", new_token)
+
+    return build("calendar", "v3", credentials=creds)
 
 def airtable_get(ig_page=None, start_time=None, event_id=None):
     if event_id is not None:
@@ -97,21 +78,22 @@ def airtable_delete(record_id):
 
     return res
 
-def calendar_start_sync():
+def calendar_start_sync(user_id):
     request_args = {
         "calendarId": "primary",
         "showDeleted": True,
     }
-    events_result = calender_client.events().list(**request_args).execute()
+    calendar_client = build_google_calendar_client(user_id)
+    events_result = calendar_client.events().list(**request_args).execute()
 
     while events_result.get("nextPageToken"):
         request_args["pageToken"] = events_result["nextPageToken"]
-        events_result = calender_client.events().list(**request_args).execute()
+        events_result = calendar_client.events().list(**request_args).execute()
 
-    update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
+    update_secret(user_id, "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
     print("Sync Success!!")
 
-def calendar_get(start_time, end_time, q=None):
+def calendar_get(start_time, end_time, user_id, q=None):
     request_args = {
         "calendarId": "primary",
         "timeMin": start_time,
@@ -122,27 +104,29 @@ def calendar_get(start_time, end_time, q=None):
     if q is not None:
         request_args["q"] = q
 
-    events_result = calender_client.events().list(**request_args).execute()
+    calendar_client = build_google_calendar_client(user_id)
+    events_result = calendar_client.events().list(**request_args).execute()
     events = events_result.get("items", [])
 
     return events
 
-def calendar_get_diff():
-    sync_token = get_secret("tsm.automation", "sync_token")["nextSyncToken"]
-    events_result = calender_client.events().list(calendarId="primary",syncToken=sync_token).execute()
+def calendar_get_diff(user_id):
+    sync_token = get_secret(user_id, "sync_token")["nextSyncToken"]
+    calendar_client = build_google_calendar_client(user_id)
+    events_result = calendar_client.events().list(calendarId="primary",syncToken=sync_token).execute()
 
     if len(events_result["items"]) != 0:
-        update_secret("tsm.automation", "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
+        update_secret(user_id, "sync_token", {"nextSyncToken": events_result["nextSyncToken"]})
 
     return events_result
 
-def calendar_delete(event_id):
+def calendar_delete(event_id, user_id):
     request_args = {
         "calendarId": "primary",
         "eventId": event_id
     }
-
-    events_result = calender_client.events().delete(**request_args).execute()
+    calendar_client = build_google_calendar_client(user_id)
+    events_result = calendar_client.events().delete(**request_args).execute()
 
     return events_result
 
@@ -179,3 +163,6 @@ def breakup_elements(summary, description):
         'name': name,
         'ig_page':ig_page
     }
+
+
+print(f"-----------------{__name__}-----------------")
