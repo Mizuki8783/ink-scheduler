@@ -56,23 +56,23 @@ InstagramのDMを自動化するAI予約管理システムのバックエンド�
 
 Create a `.env` file with the following variables:
 ### Flask setup
-FLASK_APP=ink-scheduler.py
-FLASK_ENV=development
-FLASK_DEBUG=1
-FERNET_KEY=your-fernet-key
+- FLASK_APP=ink-scheduler.py
+- FLASK_ENV=development
+- FLASK_DEBUG=1
+- FERNET_KEY=your-fernet-key
 ### API Keys
-OPENAI_API_KEY=your-openai-key
-GROQ_API_KEY=your-groq-key
-AIRTABLE_API_KEY=your-airtable-key
-GITGUARDIAN_API_KEY=your-gitguardian-key
+- OPENAI_API_KEY=your-openai-key
+- GROQ_API_KEY=your-groq-key
+- AIRTABLE_API_KEY=your-airtable-key
+- GITGUARDIAN_API_KEY=your-gitguardian-key
 ### Database URLs
-MONGODB_URL=your-mongodb-url
-REDIS_URL=your-redis-url
+- MONGODB_URL=your-mongodb-url
+- REDIS_URL=your-redis-url
 ### LangChain Configuration
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_ENDPOINT=your-langchain-endpoint
-LANGCHAIN_API_KEY=your-langchain-key
-LANGCHAIN_PROJECT=your-project-name
+- LANGCHAIN_TRACING_V2=true
+- LANGCHAIN_ENDPOINT=your-langchain-endpoint
+- LANGCHAIN_API_KEY=your-langchain-key
+- LANGCHAIN_PROJECT=your-project-name
 
 ## Docker Support
 
