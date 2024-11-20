@@ -2,7 +2,7 @@
 # AI-Powered Appointment Scheduler
 
 InstagramのDMを自動化するAI予約管理システムのバックエンドサーバーです。
-Manychatをフロントエンドとして使用し、InstagramのDMを通じて予約管理を実現します。
+[Manychat](https://manychat.com/)をフロントエンドとして使用し、InstagramのDMを通じて予約管理を実現します。
 自然言語処理により、お客様とのシームレスなコミュニケーションを可能にし、ビジネスの効率化を支援します。
 
 ## 機能
