@@ -1,26 +1,27 @@
 
 # AI-Powered Appointment Scheduler
 
-A sophisticated appointment scheduling system that leverages AI to manage appointments through natural language processing. The system integrates with Google Calendar and provides a seamless interface for appointment management.
+InstagramのDMを自動化するAI予約管理システムのバックエンドサーバーです。
+Manychatをフロントエンドとして使用し、InstagramのDMを通じて予約管理を実現します。
+自然言語処理により、お客様とのシームレスなコミュニケーションを可能にし、ビジネスの効率化を支援します。
 
-## Features
+## 機能
 
-- 🤖 AI-powered natural language appointment scheduling
-- 📅 Google Calendar integration
-- 💬 Real-time appointment management
-- 🔄 Webhook support for calendar synchronization
-- 🔐 Secure credential management
-- 🚀 Scalable architecture with Celery workers
+- 🤖 AIによる自然言語予約スケジューリング
+- 📅 Googleカレンダーとの連携
+- 💬 リアルタイムの予約管理
+- 🔄 カレンダー同期のためのWebhookサポート
+- 🔐 安全な認証情報管理
+- 🚀 Celeryワーカーによるスケーラブルなアーキテクチャ
 
 ## Tech Stack
 
 - **Backend**: Flask
+- **Database**: MongoDB, Airtable
 - **Task Queue**: Celery with Redis
-- **AI/ML**: LangChain with GPT-4
-- **Database**: MongoDB
-- **External Services**:
+- **LLM Framework**: LangChain
+- **Other Services**:
   - Google Calendar API
-  - Airtable
   - OpenAI/Groq
 
 ## Prerequisites
@@ -29,7 +30,7 @@ A sophisticated appointment scheduling system that leverages AI to manage appoin
 - Redis Server
 - MongoDB
 - Google Calendar API credentials
-- Various API keys (see Environment Variables section)
+- API keys (Environment Variables sectionを参照)
 
 ## Installation
 
@@ -54,66 +55,38 @@ A sophisticated appointment scheduling system that leverages AI to manage appoin
 ## Environment Variables
 
 Create a `.env` file with the following variables:
-env
+### Flask setup
 FLASK_APP=ink-scheduler.py
 FLASK_ENV=development
 FLASK_DEBUG=1
-FERNET_KEY=<your-fernet-key>
-API Keys
-OPENAI_API_KEY=<your-openai-key>
-GROQ_API_KEY=<your-groq-key>
-AIRTABLE_API_KEY=<your-airtable-key>
-GITGUARDIAN_API_KEY=<your-gitguardian-key>
-Database URLs
-MONGODB_URL=<your-mongodb-url>
-REDIS_URL=<your-redis-url>
-LangChain Configuration
+FERNET_KEY=your-fernet-key
+### API Keys
+OPENAI_API_KEY=your-openai-key
+GROQ_API_KEY=your-groq-key
+AIRTABLE_API_KEY=your-airtable-key
+GITGUARDIAN_API_KEY=your-gitguardian-key
+### Database URLs
+MONGODB_URL=your-mongodb-url
+REDIS_URL=your-redis-url
+### LangChain Configuration
 LANGCHAIN_TRACING_V2=true
-LANGCHAIN_ENDPOINT=<your-langchain-endpoint>
-LANGCHAIN_API_KEY=<your-langchain-key>
-LANGCHAIN_PROJECT=<your-project-name>
+LANGCHAIN_ENDPOINT=your-langchain-endpoint
+LANGCHAIN_API_KEY=your-langchain-key
+LANGCHAIN_PROJECT=your-project-name
 
 ## Docker Support
 
-The application can be containerized using Docker. Two Dockerfile configurations are provided:
+このアプリケーションはDockerを使用してコンテナ化することができます。2つのDockerfile構成が提供されています：
 
-1. Flask Application (`Dockerfiles/Dockerfile.flask`)
-2. Celery Workers (`Dockerfiles/Dockerfile.celery`)
-
-## Project Structure
-plaintext
-.
-├── app/
-│ ├── main/ # Main application routes
-│ ├── webhook/ # Webhook handlers
-│ ├── utils/ # Utility functions
-│ │ ├── llm/ # LangChain AI components
-│ │ └── setup/ # Setup utilities
-│ └── tasks.py # Celery tasks
-├── Dockerfiles/ # Docker configurations
-├── requirements.txt # Python dependencies
-└── config.py # Application configuration
+1. Flask アプリケーション (`Dockerfiles/Dockerfile.flask`)
+2. Celery ワーカー (`Dockerfiles/Dockerfile.celery`)
 
 ## Security
 
-- Credentials are encrypted using Fernet encryption
-- GitGuardian integration for secret scanning
-- Pre-commit hooks for security checks
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- Google Calendarのクレデンシャル等はFernetで暗号化されています
+- GitGuardianを使用し、シークレット漏洩防ぐ為のスキャンニングを行います
+- セキュリティチェックのためのプリコミットフックを導入
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- OpenAI/Groq for AI capabilities
-- LangChain for AI framework
-- Google Calendar API for calendar integration
